@@ -54,7 +54,7 @@ def alter_password_all():
     subprocess.call('su postgres -c "/usr/bin/pg_ctl stop -w -D {}"'.format(PATH), shell=True)
     os.rename('{}_orig'.format(PATH_HBA), PATH_HBA)
     os.chown(PATH_HBA, UID, GID)
-    logger.info('Users password updated from secret file {}'.format(PATH))
+    logger.info('Users password updated from secrets.')
 
 
 def set_env():
