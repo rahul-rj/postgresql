@@ -16,6 +16,7 @@ import psycopg2
 import psycopg2.extras
 import time
 import jinja2
+from jinja2 import exceptions
 import logging
 
 
@@ -113,8 +114,8 @@ def render(name, conf):
 
   try:
     template = env.get_template(os.path.basename(template_filename))
-  except:
-    raise MaestroException('Error reading template file {}!'.format(template_filename))
+  except exceptions.TemplateNotFound as e:
+        logger.info('Error reading template file {}!'.format(template_filename))
 
   logger.debug(conf)
   with open(output_filename, "w") as f:
