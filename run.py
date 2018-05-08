@@ -29,16 +29,16 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-def get_password(DB_SECRET):
+def get_password(USERNAME):
     """ Getting password either from secret file, environment variable or setting it to default
     """
 
-    FILENAME = '/run/secrets/{}'.format(DB_SECRET.lower())
+    FILENAME = '/run/secrets/{}'.format(USERNAME)
     if os.path.isfile(FILENAME):
         with open(FILENAME) as f:
             DB_PASSWORD = f.read().splitlines()[0]
     else:
-        DB_PASSWORD = os.environ.get(DB_SECRET, POSTGRES_PASSWORD)
+        DB_PASSWORD = 'postgres'
     return DB_PASSWORD
 
 
@@ -50,7 +50,7 @@ def alter_password_all():
     shutil.copy(PATH_HBA,'{}_orig'.format(PATH_HBA))
     shutil.copy('/opt/pgsql_templates/pg_hba.conf_internal', PATH_HBA)
     subprocess.call('su postgres -c "/usr/bin/pg_ctl start -w -D {}"'.format(PATH), shell=True)
-    subprocess.call('/usr/bin/psql -U postgres -c \"alter user {} with encrypted password \'{}\'\"'.format('postgres',POSTGRES_PASSWORD), shell=True)
+    subprocess.call('/usr/bin/psql -U postgres -c \"alter user {} with encrypted password \'{}\'\"'.format('postgres', POSTGRES_PASSWORD), shell=True)
     subprocess.call('su postgres -c "/usr/bin/pg_ctl stop -w -D {}"'.format(PATH), shell=True)
     os.rename('{}_orig'.format(PATH_HBA), PATH_HBA)
     os.chown(PATH_HBA, UID, GID)
@@ -78,11 +78,10 @@ def set_env():
 
     PGDBVERSION = '/opt/pgsql/data/PG_VERSION'
     PATH = '/opt/pgsql/data'
-    POSTGRES_PASSWORD = 'postgres'
-    UID = pwd.getpwnam("postgres").pw_uid
-    GID = grp.getgrnam("postgres").gr_gid
+    UID = pwd.getpwnam('postgres').pw_uid
+    GID = grp.getgrnam('postgres').gr_gid
     ARCHIVE_TIMEOUT = os.environ.get('ARCHIVE_TIMEOUT', '600')
-    POSTGRES_PASSWORD = get_password(os.environ.get('POSTGRES_DB_PASSWORD_FILE', 'POSTGRES_PASSWORD'))
+    POSTGRES_PASSWORD = get_password('postgres')
     HA = os.environ.get('HA', 'DISABLE').upper()
     DB = os.environ.get('DB', 'MASTER').upper()
     HOSTNAME = socket.gethostname().split('.')
