@@ -15,6 +15,7 @@ ENV POSTGRESQL_VERSION=9.5.12
 RUN apk add --no-cache --update py-psycopg2 pgpool postgresql=${POSTGRESQL_VERSION}-r0 postgresql-client=${POSTGRESQL_VERSION}-r0 postgresql-contrib=${POSTGRESQL_VERSION}-r0 \
     --update-cache --repository http://dl-3.alpinelinux.org/alpine/v3.4/main  --allow-untrusted && \
     pip install flask && \
+    mkdir -p /opt/pgsql/data && \
     rm -rf /var/cache/apk/*
 
 EXPOSE 5432 5000
