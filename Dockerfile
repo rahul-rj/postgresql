@@ -17,9 +17,7 @@ RUN apk add --no-cache --update py-psycopg2 pgpool postgresql=${POSTGRESQL_VERSI
     pip install flask && \
     rm -rf /var/cache/apk/*
 
-EXPOSE 5432 10010 10011
-
-VOLUME /opt/pgsql/data
+EXPOSE 5432 5000
 
 COPY templates /opt/pgsql_templates
 

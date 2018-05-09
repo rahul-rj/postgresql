@@ -51,7 +51,7 @@ def alter_password_all():
     shutil.copy(PATH_HBA,'{}_orig'.format(PATH_HBA))
     shutil.copy('/opt/pgsql_templates/pg_hba.conf_internal', PATH_HBA)
     subprocess.call('su postgres -c "/usr/bin/pg_ctl start -w -D {}"'.format(PATH), shell=True)
-    subprocess.call('/usr/bin/psql -U postgres -c \"alter user {} with encrypted password \'{}\'\"'.format('postgres', POSTGRES_PASSWORD), shell=True)
+    subprocess.call('/usr/bin/psql -U postgres -c \"alter user {} with encrypted password \'{}\'\"'.format('postgres', get_password('postgres')), shell=True)
     subprocess.call('su postgres -c "/usr/bin/pg_ctl stop -w -D {}"'.format(PATH), shell=True)
     os.rename('{}_orig'.format(PATH_HBA), PATH_HBA)
     os.chown(PATH_HBA, UID, GID)
@@ -73,7 +73,6 @@ def set_env():
     global MAX_CONNECTIONS
     global EFFECTIVE_CACHE_SIZE
     global ARCHIVE_TIMEOUT
-    global POSTGRES_PASSWORD
     global HOSTNAME
     global SERVICE_NAME
 
@@ -82,7 +81,6 @@ def set_env():
     UID = pwd.getpwnam('postgres').pw_uid
     GID = grp.getgrnam('postgres').gr_gid
     ARCHIVE_TIMEOUT = os.environ.get('ARCHIVE_TIMEOUT', '600')
-    POSTGRES_PASSWORD = get_password('postgres')
     HA = os.environ.get('HA', 'DISABLE').upper()
     DB = os.environ.get('DB', 'MASTER').upper()
     HOSTNAME = socket.gethostname().split('.')
@@ -147,7 +145,7 @@ def load_DB():
   logger.info('Creating initial DB in postgres.')
 
   conf = {}
-  conf['POSTGRES_PASSWORD'] = POSTGRES_PASSWORD
+  conf['POSTGRES'] = get_password('postgres')
   render('pgschema.sql', conf)
 
   # setup users and initial databases
@@ -224,7 +222,7 @@ def check_status_peer(MAX_TRY):
   while time.time() < end_by:
     try:
       con = psycopg2.connect(host=POSTGRESQL_HOST, port=POSTGRESQL_CLIENT_PORT,
-                             database='postgres', user='postgres', password=POSTGRES_PASSWORD)
+                             database='postgres', user='postgres', password=get_password('postgres'))
       cursor = con.cursor(cursor_factory=psycopg2.extras.DictCursor)
       cursor.execute(POSTGRESQL_COMMAND)
       answer = cursor.fetchall()
